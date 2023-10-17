@@ -1,15 +1,16 @@
 #!/usr/bin/python3
-'''
-Defines the State class
-'''
+''' Module class State '''
 from models.base_model import BaseModel
 
 
 class State(BaseModel):
-    '''States for Hbnb application
-
-    Attributes:
-        name (str): name of the State
+    '''
+    State class which inherits from BaseModel, public attributes:
+    * name: empty string
     '''
 
-    name = ''
+    name = ""
+
+    def __init__(self, *args, **kwargs):
+        ''' Initialization point call to super class BaseModel '''
+        super().__init__(*args, **kwargs)

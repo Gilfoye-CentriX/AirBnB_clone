@@ -1,121 +1,192 @@
 #!/usr/bin/python3
-"""Tests for the console"""
-
-
+"""
+Tests for HBNBCommand Class
+"""
+import os
+import pep8
 import console
 import unittest
-import os
-import json
-import shutil
-import io
-from contextlib import redirect_stdout
-from models.engine.file_storage import FileStorage
+from io import StringIO
+from unittest.mock import patch
+from console import HBNBCommand
 
 
-class TestConsole(unittest.TestCase):
-    """Tests for the console"""
+class TestHBNBCommand(unittest.TestCase):
+    """
+    Test for HBNBCommand Class
+    """
 
     @classmethod
-    def setUp(self):
+    def setUpClass(cls):
+        """
+        Set HBNBCommand Class
+        """
+        cls.cli = HBNBCommand()
+
+    @classmethod
+    def teardown(cls):
+        """
+        Delete HBNBCommand Class
+        """
+        del cls.cli
         try:
             os.remove("file.json")
         except Exception:
             pass
 
-    def test_all(self):
-        """Test all command without args"""
-        self.maxDiff = None
-        shutil.copy("./tests/allfile.json", "./file.json")
-        teststore = FileStorage()
-        teststore.reload()
-        outbuffer = io.StringIO()
-        f = open("./tests/inalltest.txt", "r")
-        cmdp = console.HBNBCommand(stdin=f, stdout=outbuffer)
-        cmdp.use_rawinput = False
-        cmdp.prompt = ""
-        with redirect_stdout(outbuffer):
-            cmdp.cmdloop()
-        f.close()
-        g = open("./tests/inallresult.txt")
-        self.assertEqual(g.read(), outbuffer.getvalue())
-        g.close()
-        teststore.save()
-        self.assertEqual(json.load("./tests/allfile.json"),
-                         json.load("./file.json"))
+    def test_pep8_Console(self):
+        """
+        Check pep8
+        """
+        psg = pep8.StyleGuide(quiet=True)
+        model = "console.py"
+        tests = "tests/test_console.py"
+        results = psg.check_files([model, tests])
+        self.assertEqual(results.total_errors, 0,
+                         "Found code style errors (and warnings).")
 
-    def test_allargs(self):
-        """Test all command with args, such as all BaseModel"""
-        self.maxDiff = None
-        shutil.copy("./tests/allfile.json", "./file.json")
-        teststore = FileStorage()
-        "BaseModel.count()"
-        teststore.reload()
-        outbuffer = io.StringIO()
-        f = open("./tests/inallindtest.txt", "r")
-        cmdp = console.HBNBCommand(stdin=f, stdout=outbuffer)
-        cmdp.use_rawinput = False
-        cmdp.prompt = ""
-        with redirect_stdout(outbuffer):
-            cmdp.cmdloop()
-        f.close()
-        g = open("./tests/inallindresult.txt")
-        self.assertEqual(g.read(), outbuffer.getvalue())
-        g.close()
-        teststore.save()
-        self.assertEqual(json.load("./tests/allfile.json"),
-                         json.load("./file.json"))
+    def test_documentation(self):
+        """
+        Check documentation
+        """
+        self.assertIsNotNone(HBNBCommand.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_EOF.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_quit.__doc__)
+        self.assertIsNotNone(HBNBCommand.emptyline.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_create.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_show.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_destroy.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_all.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_update.__doc__)
+        self.assertIsNotNone(HBNBCommand.count.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_BaseModel.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_User.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_State.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_City.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_Amenity.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_Place.__doc__)
+        self.assertIsNotNone(HBNBCommand.do_Review.__doc__)
 
-    def test_show(self):
-        """Test good show commands"""
-        self.maxDiff = None
-        shutil.copy("./tests/allfile.json", "./file.json")
-        teststore = FileStorage()
-        teststore.reload()
-        outbuffer = io.StringIO()
-        f = open("./tests/inshowtest.txt", "r")
-        cmdp = console.HBNBCommand(stdin=f, stdout=outbuffer)
-        cmdp.use_rawinput = False
-        cmdp.prompt = ""
-        with redirect_stdout(outbuffer):
-            cmdp.cmdloop()
-        f.close()
-        g = open("./tests/inshowresult.txt")
-        self.assertEqual(g.read(), outbuffer.getvalue())
-        g.close()
-        teststore.save()
-        self.assertEqual(json.load("./tests/allfile.json"),
-                         json.load("./file.json"))
+    def test_init(self):
+        """
+        Check objects as instance of HBNBCommand
+        """
+        self.assertTrue(isinstance(self.cli, HBNBCommand))
 
-    def test_showbad(self):
-        """Test bad show commands"""
-        self.maxDiff = None
-        shutil.copy("./tests/allfile.json", "./file.json")
-        teststore = FileStorage()
-        teststore.reload()
-        outbuffer = io.StringIO()
-        f = open("./tests/inshowbadtest.txt", "r")
-        cmdp = console.HBNBCommand(stdin=f, stdout=outbuffer)
-        cmdp.use_rawinput = False
-        cmdp.prompt = ""
-        with redirect_stdout(outbuffer):
-            cmdp.cmdloop()
-        f.close()
-        g = open("./tests/inshowbadresult.txt")
-        self.assertEqual(g.read(), outbuffer.getvalue())
-        g.close()
-        teststore.save()
-        self.assertEqual(json.load("./tests/allfile.json"),
-                         json.load("./file.json"))
+    def test_quit(self):
+        """
+        Check quit command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("quit")
+            self.assertEqual('', output.getvalue())
+
+    def test_emptyline(self):
+        """
+        Check empty line
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("\n")
+            self.assertEqual('', output.getvalue())
 
     def test_create(self):
-        """Tests well-behaved create commands. Assumes correct uuid output"""
-        f = open("./tests/increatetest.txt", "r")
-        cmdp = console.HBNBCommand(stdin=f, stdout=outbuffer)
-        cmdp.use_rawinput = False
-        cmdp.prompt = ""
-        with redirect_stdout(outbuffer):
-            cmdp.cmdloop()
-        f.close()
-        ids = outbuffer.getvalue()
-        ids = ids.split("\n")
-        objects = storage.all()
+        """
+        Check create command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("create")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("create Paula")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("create City")
+            self.assertTrue(len(output.getvalue()) > 20)
+
+    def test_show(self):
+        """
+        Check show command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("show")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("show Paula")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("show City")
+            self.assertEqual("** instance id missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("show City 37731-pqrs")
+            self.assertEqual("** no instance found **\n", output.getvalue())
+
+    def test_destroy(self):
+        """
+        Check destroy command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("destroy")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("destroy Paula")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("destroy City")
+            self.assertEqual("** instance id missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("destroy City 37731-pqrs")
+            self.assertEqual("** no instance found **\n", output.getvalue())
+
+    def test_all(self):
+        """
+        Check all command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("all Paula")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("all City")
+            self.assertTrue("[" in output.getvalue())
+            self.assertTrue("]\n" in output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("City.all()")
+            self.assertTrue("[" in output.getvalue())
+            self.assertTrue("]\n" in output.getvalue())
+
+    def test_update(self):
+        """
+        Check update command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("update")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("update Guaco")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("update City")
+            self.assertEqual("** instance id missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("update City 37731-pqrs")
+            self.assertEqual
+            ("** attribute name missing **\n", output.getvalue())
+
+    def test_count(self):
+        """
+        Check count command
+        """
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("count")
+            self.assertEqual("** class name missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("Guaco.count()")
+            self.assertEqual("** class doesn't exist **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("Review.count")
+            self.assertEqual("** instance id missing **\n", output.getvalue())
+        with patch('sys.stdout', new=StringIO()) as output:
+            self.cli.onecmd("Amenity.count()")
+            self.assertEqual("** no instance found **\n", output.getvalue())
+
+if __name__ == "__main__":
+    unittest.main()

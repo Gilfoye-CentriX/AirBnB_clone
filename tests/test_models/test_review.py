@@ -1,63 +1,108 @@
 #!/usr/bin/python3
-
-import unittest
+"""
+Tests for Review Class
+"""
 import os
 import pep8
-from models.review import Review
+import unittest
 from models.base_model import BaseModel
+from models.review import Review
 
 
 class TestReview(unittest.TestCase):
+    """
+    Test for Review Class
+    """
 
     @classmethod
     def setUpClass(cls):
-        cls.rev1 = Review()
-        cls.rev1.place_id = "Raleigh"
-        cls.rev1.user_id = "Greg"
-        cls.rev1.text = "Grade A"
+        """
+        Setup Review Class
+        """
+        cls.rvw = Review()
+        cls.rvw.place_id = "3773-pqrs"
+        cls.rvw.user_id = "7337-abcd"
+        cls.rvw.text = "Long happy customer review"
 
     @classmethod
-    def tearDownClass(cls):
-        del cls.rev1
+    def teardown(cls):
+        """
+        Delete Review Class
+        """
+        del cls.rvw
         try:
             os.remove("file.json")
-        except FileNotFoundError:
+        except:
             pass
 
-    def test_style_check(self):
+    def test_pep8_Review(self):
         """
-        Tests pep8 style
+        Check pep8
         """
-        style = pep8.StyleGuide(quiet=True)
-        p = style.check_files(['models/review.py'])
-        self.assertEqual(p.total_errors, 0, "fix pep8")
+        psg = pep8.StyleGuide(quiet=True)
+        model = "models/review.py"
+        tests = "tests/test_models/test_review.py"
+        results = psg.check_files([model, tests])
+        self.assertEqual(results.total_errors, 0,
+                         "Found code style errors (and warnings).")
 
-    def test_is_subclass(self):
-        self.assertTrue(issubclass(self.rev1.__class__, BaseModel), True)
-
-    def test_checking_for_functions(self):
+    def test_documentation(self):
+        """
+        Check documentation
+        """
         self.assertIsNotNone(Review.__doc__)
+        self.assertIsNotNone(Review.__init__.__doc__)
 
-    def test_has_attributes(self):
-        self.assertTrue('id' in self.rev1.__dict__)
-        self.assertTrue('created_at' in self.rev1.__dict__)
-        self.assertTrue('updated_at' in self.rev1.__dict__)
-        self.assertTrue('place_id' in self.rev1.__dict__)
-        self.assertTrue('text' in self.rev1.__dict__)
-        self.assertTrue('user_id' in self.rev1.__dict__)
+    def test_methods(self):
+        """
+        Check Review and Basemodel methods
+        """
+        self.assertTrue(hasattr(Review, "__init__"))
+        self.assertTrue(hasattr(Review, "__str__"))
+        self.assertTrue(hasattr(Review, "save"))
+        self.assertTrue(hasattr(Review, "to_dict"))
 
-    def test_attributes_are_strings(self):
-        self.assertEqual(type(self.rev1.text), str)
-        self.assertEqual(type(self.rev1.place_id), str)
-        self.assertEqual(type(self.rev1.user_id), str)
+    def test_init(self):
+        """
+        Check object as instance of Review
+        """
+        self.assertTrue(isinstance(self.rvw, Review))
+
+    def test_str(self):
+        """
+        Check string representation of Review object
+        """
+        rvw_str = str(self.rvw)
+        self.assertEqual(True, "[Review] ({})".format(self.rvw.id) in rvw_str)
+        self.assertEqual(True, "place_id" in rvw_str)
+        self.assertEqual(True, "user_id" in rvw_str)
+        self.assertEqual(True, "text" in rvw_str)
+
+    def test_attr_types(self):
+        """
+        Check types defined
+        """
+        self.assertEqual(type(self.rvw.place_id), str)
+        self.assertEqual(type(self.rvw.user_id), str)
+        self.assertEqual(type(self.rvw.text), str)
 
     def test_save(self):
-        self.rev1.save()
-        self.assertNotEqual(self.rev1.created_at, self.rev1.updated_at)
+        """
+        Check save method
+        """
+        self.rvw.save()
+        self.assertTrue(os.path.isfile('file.json'))
+        self.assertNotEqual(self.rvw.created_at, self.rvw.updated_at)
 
     def test_to_dict(self):
-        self.assertEqual('to_dict' in dir(self.rev1), True)
-
+        """
+        Check dictionary method
+        """
+        rvw_dict = self.rvw.to_dict()
+        self.assertEqual(self.rvw.__class__.__name__, 'Review')
+        self.assertIsInstance(rvw_dict['created_at'], str)
+        self.assertIsInstance(rvw_dict['updated_at'], str)
+        self.assertEqual(type(rvw_dict), dict)
 
 if __name__ == "__main__":
     unittest.main()

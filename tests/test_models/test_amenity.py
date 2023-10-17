@@ -1,56 +1,106 @@
 #!/usr/bin/python3
-import unittest
+"""
+Tests for Amenity Class
+"""
 import os
 import pep8
-from models.amenity import Amenity
+import unittest
 from models.base_model import BaseModel
+from models.amenity import Amenity
 
 
 class TestAmenity(unittest.TestCase):
+    """
+    Test for Amenity Class
+    """
 
     @classmethod
     def setUpClass(cls):
-        cls.amenity1 = Amenity()
-        cls.amenity1.name = "Hot Tub"
+        """
+        Setup Amenity Class
+        """
+        cls.amt = Amenity()
+        cls.amt.name = "Snaks"
 
     @classmethod
-    def tearDownClass(cls):
-        del cls.amenity1
+    def teardown(cls):
+        """
+        Delete Amenity Class
+        """
+        del cls.amt
         try:
             os.remove("file.json")
-        except FileNotFoundError:
+        except:
             pass
 
-    def test_style_check(self):
+    def test_pep8_Amenity(self):
         """
-        Tests pep8 style
+        Check pep8
         """
-        style = pep8.StyleGuide(quiet=True)
-        p = style.check_files(['models/amenity.py'])
-        self.assertEqual(p.total_errors, 0, "fix pep8")
+        psg = pep8.StyleGuide(quiet=True)
+        model = "models/amenity.py"
+        tests = "tests/test_models/test_amenity.py"
+        results = psg.check_files([model, tests])
+        self.assertEqual(results.total_errors, 0,
+                         "Found code style errors (and warnings).")
 
-    def test_is_subclass(self):
-        self.assertTrue(issubclass(self.amenity1.__class__, BaseModel), True)
-
-    def test_checking_for_functions(self):
+    def test_documentation(self):
+        """
+        Check documentation
+        """
         self.assertIsNotNone(Amenity.__doc__)
+        self.assertIsNotNone(Amenity.__init__.__doc__)
 
-    def test_has_attributes(self):
-        self.assertTrue('id' in self.amenity1.__dict__)
-        self.assertTrue('created_at' in self.amenity1.__dict__)
-        self.assertTrue('updated_at' in self.amenity1.__dict__)
-        self.assertTrue('name' in self.amenity1.__dict__)
+    def test_methods(self):
+        """
+        Check Amenity and Basemodel methods
+        """
+        self.assertTrue(hasattr(Amenity, "__init__"))
+        self.assertTrue(hasattr(Amenity, "__str__"))
+        self.assertTrue(hasattr(Amenity, "save"))
+        self.assertTrue(hasattr(Amenity, "to_dict"))
 
-    def test_attributes_are_strings(self):
-        self.assertEqual(type(self.amenity1.name), str)
+    def test_init(self):
+        """
+        Check object as instance of Amenity
+        """
+        self.assertTrue(isinstance(self.amt, Amenity))
+
+    def test_str(self):
+        """
+        Check string representation of Amenity object
+        """
+        amt_str = str(self.amt)
+        self.assertEqual(True, "[Amenity] ({})".format(self.amt.id) in amt_str)
+        self.assertEqual(True, "name" in amt_str)
+        self.assertEqual(True, "created_at" in amt_str)
+        self.assertEqual(True, "updated_at" in amt_str)
+        self.assertEqual(True, "datetime.datetime" in amt_str)
+
+    def test_attr_types(self):
+        """
+        Check types defined
+        """
+        self.assertEqual(type(self.amt.name), str)
+        self.assertTrue(hasattr(self.amt, "name"))
 
     def test_save(self):
-        self.amenity1.save()
-        self.assertNotEqual(self.amenity1.created_at, self.amenity1.updated_at)
+        """
+        Check save method
+        """
+        self.amt.save()
+        self.assertTrue(os.path.isfile('file.json'))
+        self.assertNotEqual(self.amt.created_at, self.amt.updated_at)
 
     def test_to_dict(self):
-        self.assertEqual('to_dict' in dir(self.amenity1), True)
-
+        """
+        Check dictionary method
+        """
+        amt_dict = self.amt.to_dict()
+        self.assertEqual(self.amt.__class__.__name__, 'Amenity')
+        self.assertIsInstance(amt_dict['created_at'], str)
+        self.assertIsInstance(amt_dict['updated_at'], str)
+        self.assertEqual(type(amt_dict), dict)
 
 if __name__ == "__main__":
     unittest.main()

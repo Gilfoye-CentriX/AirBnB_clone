@@ -1,15 +1,16 @@
 #!/usr/bin/python3
-'''
-Defines the Amenity class
-'''
+''' Module class amenity.py '''
 from models.base_model import BaseModel
 
 
 class Amenity(BaseModel):
-    '''Amenity for Hbnb application
-
-    Attributes:
-        name (str): name of the Amenity
+    '''
+    class Amenity that inherits from BaseModel, public class attributes:
+    * name: empty string
     '''
 
-    name = ''
+    name = ""
+
+    def __init__(self, *args, **kwargs):
+        ''' Initialization point inherit super class '''
+        super().__init__(*args, **kwargs)

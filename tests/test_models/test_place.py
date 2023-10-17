@@ -1,87 +1,138 @@
 #!/usr/bin/python3
-
-import unittest
+"""
+Tests for Place Class
+"""
 import os
 import pep8
-from models.place import Place
+import unittest
 from models.base_model import BaseModel
+from models.place import Place
 
 
 class TestPlace(unittest.TestCase):
+    """
+    Test for Place Class
+    """
 
     @classmethod
     def setUpClass(cls):
-        cls.place1 = Place()
-        cls.place1.city_id = "Somewhere in India"
-        cls.place1.user_id = "Aladdin"
-        cls.place1.name = "Taj Mahal"
-        cls.place1.description = "Fit for a king"
-        cls.place1.number_rooms = 0
-        cls.place1.number_bathrooms = 0
-        cls.place1.max_guest = 0
-        cls.place1.price_by_night = 0
-        cls.place1.latitude = 0.0
-        cls.place1.longitude = 0.0
-        cls.place1.amenity_ids = []
+        """
+        Setup Place Class
+        """
+        cls.place = Place()
+        cls.place.name = "Cundinamarca"
+        cls.place = Place()
+        cls.place.city_id = "3773-pqrs"
+        cls.place.user_id = "7337-abcd"
+        cls.place.name = "Tierra Caliente"
+        cls.place.description = "Playa, sol y arena"
+        cls.place.number_rooms = 73
+        cls.place.number_bathrooms = 3
+        cls.place.max_guest = 8873
+        cls.place.price_by_night = 30
+        cls.place.latitude = 73.0
+        cls.place.longitude = 37.0
+        cls.place.amenity_ids = ["0001-amnt"]
 
     @classmethod
-    def tearDownClass(cls):
-        del cls.place1
+    def teardown(cls):
+        """
+        Delete Place Class
+        """
+        del cls.place
         try:
             os.remove("file.json")
-        except FileNotFoundError:
+        except:
             pass
 
-    def test_style_check(self):
+    def test_pep8_Place(self):
         """
-        Tests pep8 style
+        Check pep8
         """
-        style = pep8.StyleGuide(quiet=True)
-        p = style.check_files(['models/place.py'])
-        self.assertEqual(p.total_errors, 0, "fix pep8")
+        psg = pep8.StyleGuide(quiet=True)
+        model = "models/place.py"
+        tests = "tests/test_models/test_place.py"
+        results = psg.check_files([model, tests])
+        self.assertEqual(results.total_errors, 0,
+                         "Found code style errors (and warnings).")
 
-    def test_is_subclass(self):
-        self.assertTrue(issubclass(self.place1.__class__, BaseModel), True)
-
-    def test_checking_for_functions(self):
+    def test_documentation(self):
+        """
+        Check documentation
+        """
         self.assertIsNotNone(Place.__doc__)
+        self.assertIsNotNone(Place.__init__.__doc__)
 
-    def test_has_attributes(self):
-        self.assertTrue('id' in self.place1.__dict__)
-        self.assertTrue('created_at' in self.place1.__dict__)
-        self.assertTrue('updated_at' in self.place1.__dict__)
-        self.assertTrue('city_id' in self.place1.__dict__)
-        self.assertTrue('user_id' in self.place1.__dict__)
-        self.assertTrue('name' in self.place1.__dict__)
-        self.assertTrue('description' in self.place1.__dict__)
-        self.assertTrue('number_rooms' in self.place1.__dict__)
-        self.assertTrue('number_bathrooms' in self.place1.__dict__)
-        self.assertTrue('max_guest' in self.place1.__dict__)
-        self.assertTrue('price_by_night' in self.place1.__dict__)
-        self.assertTrue('latitude' in self.place1.__dict__)
-        self.assertTrue('longitude' in self.place1.__dict__)
-        self.assertTrue('amenity_ids' in self.place1.__dict__)
+    def test_methods(self):
+        """
+        Check Place and Basemodel methods
+        """
+        self.assertTrue(hasattr(Place, "__init__"))
+        self.assertTrue(hasattr(Place, "__str__"))
+        self.assertTrue(hasattr(Place, "save"))
+        self.assertTrue(hasattr(Place, "to_dict"))
 
-    def test_attributes_are_strings(self):
-        self.assertEqual(type(self.place1.city_id), str)
-        self.assertEqual(type(self.place1.user_id), str)
-        self.assertEqual(type(self.place1.name), str)
-        self.assertEqual(type(self.place1.description), str)
-        self.assertEqual(type(self.place1.number_rooms), int)
-        self.assertEqual(type(self.place1.number_bathrooms), int)
-        self.assertEqual(type(self.place1.max_guest), int)
-        self.assertEqual(type(self.place1.price_by_night), int)
-        self.assertEqual(type(self.place1.latitude), float)
-        self.assertEqual(type(self.place1.longitude), float)
-        self.assertEqual(type(self.place1.amenity_ids), list)
+    def test_init(self):
+        """
+        Check object as instance of Place
+        """
+        self.assertTrue(isinstance(self.place, Place))
+
+    def test_str(self):
+        """
+        Check string representation of Place object
+        """
+        plc_str = str(self.place)
+        self.assertEqual(True, "[Place] ({})".format(self.place.id) in plc_str)
+        self.assertEqual(True, "city_id" in plc_str)
+        self.assertEqual(True, "user_id" in plc_str)
+        self.assertEqual(True, "name" in plc_str)
+        self.assertEqual(True, "description" in plc_str)
+        self.assertEqual(True, "number_rooms" in plc_str)
+        self.assertEqual(True, "number_bathrooms" in plc_str)
+        self.assertEqual(True, "max_guest" in plc_str)
+        self.assertEqual(True, "price_by_night" in plc_str)
+        self.assertEqual(True, "number_bathrooms" in plc_str)
+        self.assertEqual(True, "latitude" in plc_str)
+        self.assertEqual(True, "longitude" in plc_str)
+        self.assertEqual(True, "amenity_ids" in plc_str)
+        self.assertEqual(True, "created_at" in plc_str)
+        self.assertEqual(True, "updated_at" in plc_str)
+        self.assertEqual(True, "datetime.datetime" in plc_str)
+
+    def test_attr_types(self):
+        """
+        Check types defined
+        """
+        self.assertEqual(type(self.place.city_id), str)
+        self.assertEqual(type(self.place.user_id), str)
+        self.assertEqual(type(self.place.name), str)
+        self.assertEqual(type(self.place.description), str)
+        self.assertEqual(type(self.place.number_rooms), int)
+        self.assertEqual(type(self.place.number_bathrooms), int)
+        self.assertEqual(type(self.place.max_guest), int)
+        self.assertEqual(type(self.place.price_by_night), int)
+        self.assertEqual(type(self.place.latitude), float)
+        self.assertEqual(type(self.place.longitude), float)
+        self.assertEqual(type(self.place.amenity_ids), list)
 
     def test_save(self):
-        self.place1.save()
-        self.assertNotEqual(self.place1.created_at, self.place1.updated_at)
+        """
+        Check save method
+        """
+        self.place.save()
+        self.assertTrue(os.path.isfile('file.json'))
+        self.assertNotEqual(self.place.created_at, self.place.updated_at)
 
     def test_to_dict(self):
-        self.assertEqual('to_dict' in dir(self.place1), True)
-
+        """
+        Check dictionary method
+        """
+        place_dict = self.place.to_dict()
+        self.assertEqual(self.place.__class__.__name__, 'Place')
+        self.assertIsInstance(place_dict['created_at'], str)
+        self.assertIsInstance(place_dict['updated_at'], str)
+        self.assertEqual(type(place_dict), dict)
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,60 +1,111 @@
 #!/usr/bin/python3
-
-import unittest
+"""
+Tests for City Class
+"""
 import os
 import pep8
-from models.city import City
+import unittest
 from models.base_model import BaseModel
+from models.city import City
 
 
 class TestCity(unittest.TestCase):
+    """
+    Test for City Class
+    """
 
     @classmethod
     def setUpClass(cls):
-        cls.city1 = City()
-        cls.city1.name = "Compton"
-        cls.city1.state_id = "CA"
+        """
+        Setup City Class
+        """
+        cls.city = City()
+        cls.city.state_id = "3773-pqrs"
+        cls.city.name = "Bogotá"
 
     @classmethod
-    def tearDownClass(cls):
-        del cls.city1
+    def teardown(cls):
+        """
+        Delete City Class
+        """
+        del cls.city
         try:
             os.remove("file.json")
-        except FileNotFoundError:
+        except:
             pass
 
-    def test_style_check(self):
+    def test_pep8_City(self):
         """
-        Tests pep8 style
+        Check pep8
         """
-        style = pep8.StyleGuide(quiet=True)
-        p = style.check_files(['models/city.py'])
-        self.assertEqual(p.total_errors, 0, "fix pep8")
+        psg = pep8.StyleGuide(quiet=True)
+        model = "models/city.py"
+        tests = "tests/test_models/test_city.py"
+        results = psg.check_files([model, tests])
+        self.assertEqual(results.total_errors, 0,
+                         "Found code style errors (and warnings).")
 
-    def test_is_subclass(self):
-        self.assertTrue(issubclass(self.city1.__class__, BaseModel), True)
-
-    def test_checking_for_functions(self):
+    def test_documentation(self):
+        """
+        Check documentation
+        """
         self.assertIsNotNone(City.__doc__)
+        self.assertIsNotNone(City.__init__.__doc__)
 
-    def test_has_attributes(self):
-        self.assertTrue('id' in self.city1.__dict__)
-        self.assertTrue('created_at' in self.city1.__dict__)
-        self.assertTrue('updated_at' in self.city1.__dict__)
-        self.assertTrue('state_id' in self.city1.__dict__)
-        self.assertTrue('name' in self.city1.__dict__)
+    def test_attributes(self):
+        """
+        Check User attributes
+        """
+        self.assertTrue('id' in self.city.__dict__)
+        self.assertTrue('created_at' in self.city.__dict__)
+        self.assertTrue('updated_at' in self.city.__dict__)
+        self.assertTrue(hasattr(self.city, "name"))
+        self.assertTrue(hasattr(self.city, "state_id"))
 
-    def test_attributes_are_strings(self):
-        self.assertEqual(type(self.city1.name), str)
-        self.assertEqual(type(self.city1.state_id), str)
+    def test_methods(self):
+        """
+        Check City and Basemodel methods
+        """
+        self.assertTrue(hasattr(City, "__init__"))
+        self.assertTrue(hasattr(City, "__str__"))
+        self.assertTrue(hasattr(City, "save"))
+        self.assertTrue(hasattr(City, "to_dict"))
+
+    def test_init(self):
+        """
+        Check object as instance of City
+        """
+        self.assertTrue(isinstance(self.city, City))
+
+    def test_str(self):
+        """
+        Check string representation of City object
+        """
+        city_str = str(self.city)
+        self.assertEqual(True, "[City] ({})".format(self.city.id) in city_str)
+        self.assertEqual(True, "name" in city_str)
+        self.assertEqual(True, "state_id" in city_str)
+        self.assertEqual(True, "created_at" in city_str)
+        self.assertEqual(True, "updated_at" in city_str)
+        self.assertEqual(True, "datetime.datetime" in city_str)
 
     def test_save(self):
-        self.city1.save()
-        self.assertNotEqual(self.city1.created_at, self.city1.updated_at)
+        """
+        Check save method
+        """
+        self.city.save()
+        self.assertNotEqual(self.city.created_at, self.city.updated_at)
+        self.assertTrue(os.path.exists('file.json'))
 
     def test_to_dict(self):
-        self.assertEqual('to_dict' in dir(self.city1), True)
-
+        """
+        Check dictionary method
+        """
+        city_dict = self.city.to_dict()
+        self.assertEqual(self.city.__class__.__name__, 'City')
+        self.assertIsInstance(city_dict['created_at'], str)
+        self.assertIsInstance(city_dict['updated_at'], str)
+        self.assertEqual(type(city_dict), dict)
 
 if __name__ == "__main__":
     unittest.main()

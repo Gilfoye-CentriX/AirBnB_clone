@@ -1,21 +1,22 @@
 #!/usr/bin/python3
-'''
-Defines the User class
-'''
+''' Module class user.py '''
 from models.base_model import BaseModel
 
 
 class User(BaseModel):
-    '''Users for the AirBnB clone
-
-    Attributes:
-        email (str): the email of the User
-        password (str): the password of the User
-        first_name (str): the User's first name
-        last_name (str): the User's last name
+    '''
+    class User that inherits from BaseModel, public class attributes:
+    * email: empty string
+    * password: empty string
+    * first_name: empty string
+    * last_name: empty string
     '''
 
-    email = ''
-    password = ''
-    first_name = ''
-    last_name = ''
+    email = ""
+    password = ""
+    first_name = ""
+    last_name = ""
+
+    def __init__(self, *args, **kwargs):
+        ''' Initialization point inherit super class '''
+        super().__init__(*args, **kwargs)

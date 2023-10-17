@@ -1,103 +1,152 @@
 #!/usr/bin/python3
 """
-Unittest to test FileStorage class
+Tests for FileStorage Class
 """
-import unittest
-import pep8
-import json
 import os
-import shutil
-from models.base_model import BaseModel
-from models.user import User
-from models.state import State
+import pep8
+import unittest
+from models.__init__ import storage
 from models.city import City
-from models.amenity import Amenity
-from models.place import Place
-from models.review import Review
+from models.base_model import BaseModel
 from models.engine.file_storage import FileStorage
 
 
 class TestFileStorage(unittest.TestCase):
-    '''testing file storage'''
+    """
+    Test for FileStorage Class
+    """
+    def setUp(self):
+        """ set variables to be use """
+
+    def tearDown(self):
+        """ End the variables used """
 
     @classmethod
     def setUpClass(cls):
-        cls.rev1 = Review()
-        cls.rev1.place_id = "Raleigh"
-        cls.rev1.user_id = "Greg"
-        cls.rev1.text = "Grade A"
+        """
+        Set FileStorage Class
+        """
+        cls.fs = FileStorage()
 
     @classmethod
     def teardown(cls):
-        del cls.rev1
-
-    def teardown(self):
+        """
+        Delete FileStorage Class
+        """
+        del cls.fs
         try:
             os.remove("file.json")
         except Exception:
             pass
 
-    def test_style_check(self):
+    def test_pep8_FileStorage(self):
         """
-        Tests pep8 style
+        Check pep8
         """
-        style = pep8.StyleGuide(quiet=True)
-        p = style.check_files(['models/engine/file_storage.py'])
-        self.assertEqual(p.total_errors, 0, "fix pep8")
+        psg = pep8.StyleGuide(quiet=True)
+        model = "models/engine/file_storage.py"
+        tests = "tests/test_models/test_engine/test_file_storage.py"
+        results = psg.check_files([model, tests])
+        self.assertEqual(results.total_errors, 0,
+                         "Found code style errors (and warnings).")
+
+    def test_documentation(self):
+        """
+        Check documentation
+        """
+        self.assertIsNotNone(FileStorage.__doc__)
+        self.assertIsNotNone(FileStorage.all.__doc__)
+        self.assertIsNotNone(FileStorage.new.__doc__)
+        self.assertIsNotNone(FileStorage.save.__doc__)
+        self.assertIsNotNone(FileStorage.reload.__doc__)
+
+    def test_attributes(self):
+        """
+        Check FileStorage attributes
+        """
+        self.assertTrue(hasattr(FileStorage, "_FileStorage__objects"))
+        self.assertTrue(type(self.fs._FileStorage__objects) is dict)
+        self.assertTrue(hasattr(FileStorage, "_FileStorage__file_path"))
+        self.assertTrue(type(self.fs._FileStorage__file_path) is str)
+
+    def test_methods(self):
+        """
+        Check FileStorage methods
+        """
+        self.assertTrue(hasattr(FileStorage, "all"))
+        self.assertTrue(hasattr(FileStorage, "new"))
+        self.assertTrue(hasattr(FileStorage, "save"))
+        self.assertTrue(hasattr(FileStorage, "reload"))
+
+    def test_init(self):
+        """
+        Check objects as instance of FileStorage
+        """
+        self.assertTrue(isinstance(self.fs, FileStorage))
 
     def test_all(self):
         """
-        Tests method: all (returns dictionary <class>.<id> : <obj instance>)
+        Check objects dictionary
         """
-        storage = FileStorage()
-        instances_dic = storage.all()
-        self.assertIsNotNone(instances_dic)
-        self.assertEqual(type(instances_dic), dict)
-        self.assertIs(instances_dic, storage._FileStorage__objects)
+        self.assertIsNotNone(self.fs.all())
+        self.assertTrue(type(self.fs.all()) is dict)
 
     def test_new(self):
         """
-        Tests method: new (saves new object into dictionary)
+        Check save method
         """
-        m_storage = FileStorage()
-        instances_dic = m_storage.all()
-        melissa = User()
-        melissa.id = 999999
-        melissa.name = "Melissa"
-        m_storage.new(melissa)
-        key = melissa.__class__.__name__ + "." + str(melissa.id)
-        self.assertIsNotNone(instances_dic[key])
+        storage = FileStorage()
+        objects = storage.all()
+        my_city = City()
+        my_city.state_id = "37731-pqrs"
+        my_city.name = "Caracas"
+        storage.new(my_city)
+        key = my_city.__class__.__name__ + "." + str(my_city.id)
+        self.assertIsNotNone(objects[key])
 
-    def test_reload_empty(self):
+    def test_save(self):
         """
-        Tests method: reload (reloads objects from string file)
+        Check save methods
         """
-        a_storage = FileStorage()
-        try:
-            os.remove("file.json")
-        except Exception:
-            pass
-        with open("file.json", "w") as f:
-            f.write("{}")
-        with open("file.json", "r") as r:
-            for line in r:
-                self.assertEqual(line, "{}")
-        self.assertIs(a_storage.reload(), None)
+        storage = FileStorage()
+        my_city = City()
+        my_city.state_id = "37731-pqrs"
+        my_city.name = "Caracas"
+        my_city.save()
+        self.assertTrue(os.path.isfile('file.json'))
+        storage.reload()
+        my_restored_city = storage.all()["City.{}".format(my_city.id)]
+        self.assertTrue(my_restored_city.name == "Caracas")
+        self.assertTrue(os.path.exists('file.json'))
 
-    def test_reload(self):
+    def test_restore(self):
         """
-        Tests method: reload (reloads objects from string file)
+        Check restore methods
         """
-        self.maxDiff = None
-        a_storage = FileStorage()
-        try:
-            os.remove("file.json")
-        except Exception:
-            pass
-        shutil.copy("./tests/test_models/test_engine/allin.txt", "./file.json")
-        with open("./file.json") as f:
-            dicts = json.load(f)
-        a_storage.reload()
-        objs = a_storage.all()
-        for key in dicts:
-            self.assertEqual(objs[key].to_dict(), dicts[key])
+        storage = FileStorage()
+        my_city = City()
+        my_city.state_id = "37731-pqrs"
+        my_city.name = "Caracas"
+        my_city.save()
+        self.assertTrue(os.path.isfile('file.json'))
+        storage.reload()
+        my_restored_city = storage.all()["City.{}".format(my_city.id)]
+        self.assertTrue(my_restored_city.name == "Caracas")
+        self.assertTrue(os.path.exists('file.json'))
+        self.assertTrue(my_city.created_at,
+                        my_city.updated_at)
+
+    def test_objects_size(self):
+        """
+        Check replication for JSON and DICT
+        """
+        storage = FileStorage()
+        size_prev = len(storage.all())
+        my_city = City()
+        my_city.state_id = "37731-pqrs"
+        my_city.name = "Caracas"
+        size_after = len(storage.all()) - 1
+        self.assertTrue(size_prev == size_after)
+
+if __name__ == "__main__":
+    unittest.main()
