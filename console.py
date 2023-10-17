@@ -1,253 +1,384 @@
 #!/usr/bin/python3
-"""Command line console for HBNB"""
-
-
+''' Module class console.py '''
+import cmd
 import ast
 import shlex
-import json
-import cmd
-import readline
 import models
-BaseModel = models.user.BaseModel
-User = models.user.User
-Place = models.place.Place
-State = models.state.State
-Amenity = models.amenity.Amenity
-Review = models.review.Review
-City = models.city.City
-storage = models.storage
+from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
+
+
+class_ls = {'BaseModel': BaseModel, 'User': User,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Place': Place, 'Review': Review}
+store_all = models.storage.all()
 
 
 class HBNBCommand(cmd.Cmd):
-    """Command line console for HBNB. Use 'help' or '?' in console
-    for command documentation.
-    """
-    prompt = '(hbnb) '
-    __validclasses = ["BaseModel", "User", "Place", "Amenity", "Review",
-                      "City", "State"]
+    ''' Class command interpreter HBNB '''
 
-    def do_create(self, arg):
-        """Create an instance of a class.
-        Usage: create <classname>
-        """
-        arg = shlex.split(arg)
-        if len(arg) < 1:
-            print("** class name missing **")
-        elif arg[0] == "BaseModel":
-            newmodel = BaseModel()
-            print(newmodel.id)
-            storage.new(newmodel)
-        elif arg[0] == "User":
-            newmodel = User()
-            print(newmodel.id)
-            storage.new(newmodel)
-        elif arg[0] == "Place":
-            newmodel = Place()
-            print(newmodel.id)
-            storage.new(newmodel)
-        elif arg[0] == "Amenity":
-            newmodel = Amenity()
-            print(newmodel.id)
-            storage.new(newmodel)
-        elif arg[0] == "Review":
-            newmodel = Review()
-            print(newmodel.id)
-            storage.new(newmodel)
-        elif arg[0] == "City":
-            newmodel = City()
-            print(newmodel.id)
-            storage.new(newmodel)
-        elif arg[0] == "State":
-            newmodel = State()
-            print(newmodel.id)
-            storage.new(newmodel)
-        else:
-            print("** class doesn't exist **")
-            return
-        storage.save()
+    def do_EOF(self, enter):
+        ''' Close the command interpreter when you use the \'EOF\' command '''
+        return True
 
-    def do_show(self, arg):
-        """Show an instance of a class.
-        Usage: show <classname> <uuid>
-        """
-        arg = shlex.split(arg)
-        if len(arg) < 1:
-            print("** class name missing **")
-            return
-        if arg[0] not in self.__validclasses:
-            print("** class doesn't exist **")
-            return
-        if len(arg) < 2:
-            print("** instance id missing **")
-        else:
-            obj = storage.get_object(arg[1])
-            if obj is None or obj.__class__.__name__ != arg[0]:
-                print("** no instance found **")
-            else:
-                print(str(obj))
-
-    def do_destroy(self, arg):
-        """Destroy a class instance by uuid.
-        Usage: destroy <classname> <uuid>
-        """
-        arg = shlex.split(arg)
-        if len(arg) < 1:
-            print("** class name missing **")
-        else:
-            if arg[0] in self.__validclasses:
-                if len(arg) < 2:
-                    print("** instance id missing **")
-                else:
-                    try:
-                        del storage.all()[arg[0] + "." + arg[1]]
-                        storage.save()
-                    except KeyError:
-                        print("** no instance found **")
-            else:
-                print("** class doesn't exist **")
-
-    def do_all(self, arg):
-        """Print all instances of a class, or all instances with no args.
-        Usage: all [classname]
-        """
-        arg = shlex.split(arg)
-        objects = storage.all()
-        if len(arg) < 1:
-            print("[\"", end="")
-            print("\", \"".join(str(objects[obj])
-                                for obj in objects), end="")
-            print("\"]")
-        else:
-            if arg[0] in self.__validclasses:
-                listclass = [str(objects[obj]) for obj in objects
-                             if objects[obj].__class__.__name__ == arg[0]]
-                print("[\"", end="")
-                print("\", \"".join(listclass), end="")
-                print("\"]")
-            else:
-                print("** class doesn't exist **")
-
-    def do_update(self, arg):
-        """Update an instance of a class based on uuid
-        Usage: update <classname> <uuid> <attribute> <value>
-        """
-        arg = shlex.split(arg)
-        if len(arg) < 1:
-            print("** class name missing **")
-            return
-        if arg[0] not in self.__validclasses:
-            print("** class doesn't exist **")
-            return
-        if len(arg) < 2:
-            print("** instance id missing **")
-            return
-        obj = storage.get_object(arg[1])
-        if obj:
-            if len(arg) < 3:
-                print("** attribute name missing **")
-            elif len(arg) < 4:
-                print("** value missing **")
-            else:
-                """Might want to check invalid data type here"""
-                try:
-                    setattr(obj, arg[2], ast.literal_eval(arg[3].strip()))
-                except (ValueError, SyntaxError):
-                    setattr(obj, arg[2], arg[3])
-                obj.save()
-        else:
-            print("** no instance found **")
-
-    def _do_count(self, arg):
-        """prints the number of a type of instance in storage.
-        Usage: count <classname>
-        """
-        arg = shlex.split(arg)
-        if len(arg) < 1:
-            print("** class name missing **")
-            return
-        count = 0
-        objects = storage.all()
-        for key in objects:
-            if objects[key].__class__.__name__ == arg[0]:
-                count += 1
-        print(count)
-
-    def default(self, line):
-        """Parse function style syntax for some commands. Regular error
-        message otherwise.
-        """
-        classname = line.split(".", 1)
-        if len(classname) < 2:
-            print("** Unknown syntax:", line)
-            return
-        if classname[0] not in self.__validclasses:
-            print("** class doesn't exist **")
-            return
-        methodname = classname[1].split("(", 1)
-        if methodname[0] not in ["count", "all", "show", "destroy", "update"]\
-           or len(methodname) < 2:
-            print("** Unknown syntax:", line)
-            return
-        methodname[1] = methodname[1].strip()
-        if len(methodname[1]) < 1 or methodname[1][-1] != ')':
-            print("** Unknown syntax:", line)
-            return
-        args = methodname[1][:-1]
-        if methodname[0] == "show":
-            return self.do_show(classname[0] + " " + args)
-        if methodname[0] == "all":
-            return self.do_all(classname[0])
-        if methodname[0] == "destroy":
-            return self.do_destroy(classname[0] + " " + args)
-        if methodname[0] == "count":
-            return self._do_count(classname[0])
-        if methodname[0] == "update":
-            if len(args) < 1:
-                print("** no instance found **")
-                return
-            attrchk = args.split(",", 1)
-            if len(attrchk) < 2:
-                print("** attribute not found **")
-                return
-            if attrchk[1].strip()[0] == "{":
-                return self.update_dict(args, classname[0])
-            else:
-                args = args.split(",", 2)
-                return self.do_update(" ".join([classname[0]] + args))
-
-    def update_dict(self, args, classname):
-        """Loads dictionary from args string then updates instance.
-        Input args should be id then dict
-        """
-        args = args.split(",", 1)
-        try:
-            dicty = ast.literal_eval(args[1].strip())
-            if type(dicty) is not dict:
-                print("** bad dictionary **")
-        except Exception:
-            print("** bad dictionary **")
-            return
-        else:
-            obj = storage.get_object(args[0].strip("'\""))
-            if obj is None or obj.__class__.__name__ != classname:
-                print("** no instance found **")
-                return
-            for attr in dicty:
-                setattr(obj, attr, dicty[attr])
-
-    def do_quit(self, arg):
-        """Quit the shell"""
-        return 1
-
-    def do_EOF(self, arg):
-        """Quit the shell"""
-        print()
-        return 1
+    def do_quit(self, enter):
+        ''' Close the command interpreter when you use the \'quit\' command '''
+        return True
 
     def emptyline(self):
-        """Don't do anything if there's an empty line"""
-        return 0
+        ''' Clean the last nonempty command entered '''
+        return False
+
+    def do_create(self, args):
+        ''' Create a new class including his id number '''
+        if not args:
+            print('** class name missing **')
+        else:
+            arg = args.split()
+            if arg[0] in class_ls:
+                exc = class_ls[arg[0]]()
+                print(exc.id)
+                exc.save()
+            else:
+                print('** class doesn\'t exist **')
+
+    def do_show(self, args):
+        ''' Print the object with id specified and his dictionary '''
+        if not args:
+            print('** class name missing **')
+        else:
+            arg = args.split()
+            if not arg[0] in class_ls:
+                print('** class doesn\'t exist **')
+            else:
+                if len(arg) > 1:
+                    class_key = ''
+                    class_key = arg[0] + '.' + arg[1]
+                    if class_key in store_all:
+                        print(store_all[class_key])
+                    else:
+                        print('** no instance found **')
+                else:
+                    print('** instance id missing **')
+
+    def do_destroy(self, args):
+        ''' Removes an object with id specified and his dictionary '''
+        if not args:
+            print('** class name missing **')
+        else:
+            arg = args.split()
+            if not arg[0] in class_ls:
+                print('** class doesn\'t exist **')
+            else:
+                if len(arg) > 1:
+                    class_key = ''
+                    class_key = arg[0] + '.' + arg[1]
+                    if class_key in store_all:
+                        store_all.pop(class_key)
+                        models.storage.save()
+                    else:
+                        print('** no instance found **')
+                else:
+                    print('** instance id missing **')
+
+    def do_all(self, args):
+        '''
+        Prints all string representation of all instances
+        based or not on the class name
+        ex: \'(hbnb ) all\' or \'(hbnb )\' all BaseModel
+        '''
+        ls_val = []
+        arg = args.split()
+        if len(arg) == 0:
+            for val in store_all.values():
+                ls_val.append(str(val))
+            print(ls_val)
+        elif arg[0] in class_ls:
+            for class_key in store_all:
+                if arg[0] in class_key:
+                    ls_val.append(str(store_all[class_key]))
+            print(ls_val)
+        else:
+            print('** class doesn\'t exist **')
+
+    def do_update(self, args):
+        '''
+        Updates an instance based on the class name and
+        id by adding or updating attribute.
+        ex: \'(hbnb )\' update BaseModel 123456789 attr_name attr_value
+        '''
+        arg = shlex.split(args)
+        length = len(arg)
+        if length == 0:
+            print('** class name missing **')
+            return
+        if not arg[0] in class_ls:
+            print('** class doesn\'t exist **')
+            return
+        else:
+            if length == 1:
+                print('** instance id missing **')
+                return
+            else:
+                class_key = ''
+                class_key = arg[0] + '.' + arg[1]
+            if length == 2:
+                print('** attribute name missing **')
+                return
+            if length == 3:
+                print('** value missing **')
+                return
+            if length >= 4:
+                if class_key in store_all:
+                    setattr(store_all[class_key], arg[2], arg[3])
+                    models.storage.save()
+                else:
+                    print('** no instance found **')
+                    return
+
+    def count(self, args):
+        '''
+        count all string representation of all instances
+        based or not on the class name
+        ex: \'(hbnb ) all\' or \'(hbnb )\' all BaseModel
+        '''
+        count = 0
+        ls_val = []
+        arg = args.split()
+        if arg[0] in class_ls:
+            for class_key in store_all:
+                if arg[0] in class_key:
+                    ls_val.append(str(store_all[class_key]))
+                    count += 1
+            print(count)
+        else:
+            print('** class doesn\'t exist **')
+
+    @staticmethod
+    def do_BaseModel(args):
+        '''
+        do_BaseModel, use the class.command of the console as input
+        while execute the command inserted
+        '''
+        if args:
+            fnd = args[args.find('("') + 2:args.find('")')]
+            command = args[0:args.find('(')]
+            arg = command.split(".")
+            if arg[1] == 'all':
+                HBNBCommand.do_all(HBNBCommand, 'BaseModel')
+            if arg[1] == 'count':
+                HBNBCommand.count(HBNBCommand, 'BaseModel')
+            if arg[1] == 'show':
+                HBNBCommand.do_show(HBNBCommand, 'BaseModel {}'.format(fnd))
+            if arg[1] == 'destroy':
+                HBNBCommand.do_destroy(HBNBCommand, 'BaseModel {}'.format(fnd))
+            if arg[1] == 'update':
+                ls_fd = fnd.split("\", \"")
+                if len(ls_fd) >= 3:
+                    st = 'BaseModel {} {} {}'.format(ls_fd[0],
+                                                     ls_fd[1], ls_fd[2])
+                    HBNBCommand.do_update(HBNBCommand, st)
+                else:
+                    fnd3 = fnd[0:fnd.find('"')]
+                    fnd4 = fnd[fnd.find('", ') + 3:len(args) - 1]
+                    dc = ast.literal_eval(fnd4)
+                    for key, val in dc.items():
+                        st = 'BaseModel {} {} {}'.format(fnd3, key, val)
+                        HBNBCommand.do_update(HBNBCommand, st)
+
+    @staticmethod
+    def do_User(args):
+        '''
+        do_User, use the class.command of the console as input
+        while execute the command inserted
+        '''
+        if args:
+            fnd = args[args.find('("') + 2:args.find('")')]
+            command = args[0:args.find('(')]
+            arg = command.split(".")
+            if arg[1] == 'all':
+                HBNBCommand.do_all(HBNBCommand, 'User')
+            if arg[1] == 'count':
+                HBNBCommand.count(HBNBCommand, 'User')
+            if arg[1] == 'show':
+                HBNBCommand.do_show(HBNBCommand, 'User {}'.format(fnd))
+            if arg[1] == 'destroy':
+                HBNBCommand.do_destroy(HBNBCommand, 'User {}'.format(fnd))
+            if arg[1] == 'update':
+                ls_fd = fnd.split("\", \"")
+                if len(ls_fd) >= 3:
+                    st = 'User {} {} {}'.format(ls_fd[0], ls_fd[1], ls_fd[2])
+                    HBNBCommand.do_update(HBNBCommand, st)
+                else:
+                    fnd3 = fnd[0:fnd.find('"')]
+                    fnd4 = fnd[fnd.find('", ') + 3:len(args) - 1]
+                    dc = ast.literal_eval(fnd4)
+                    for key, val in dc.items():
+                        st = 'User {} {} {}'.format(fnd3, key, val)
+                        HBNBCommand.do_update(HBNBCommand, st)
+
+    @staticmethod
+    def do_State(args):
+        '''
+        do_State, use the class.command of the console as input
+        while execute the command inserted
+        '''
+        if args:
+            fnd = args[args.find('("') + 2:args.find('")')]
+            command = args[0:args.find('(')]
+            arg = command.split(".")
+            if arg[1] == 'all':
+                HBNBCommand.do_all(HBNBCommand, 'State')
+            if arg[1] == 'count':
+                HBNBCommand.count(HBNBCommand, 'State')
+            if arg[1] == 'show':
+                HBNBCommand.do_show(HBNBCommand, 'State {}'.format(fnd))
+            if arg[1] == 'destroy':
+                HBNBCommand.do_destroy(HBNBCommand, 'State {}'.format(fnd))
+            if arg[1] == 'update':
+                ls_fd = fnd.split("\", \"")
+                if len(ls_fd) >= 3:
+                    st = 'State {} {} {}'.format(ls_fd[0], ls_fd[1], ls_fd[2])
+                    HBNBCommand.do_update(HBNBCommand, st)
+                else:
+                    fnd3 = fnd[0:fnd.find('"')]
+                    fnd4 = fnd[fnd.find('", ') + 3:len(args) - 1]
+                    dc = ast.literal_eval(fnd4)
+                    for key, val in dc.items():
+                        st = 'State {} {} {}'.format(fnd3, key, val)
+                        HBNBCommand.do_update(HBNBCommand, st)
+
+    @staticmethod
+    def do_City(args):
+        '''
+        do_City, use the class.command of the console as input
+        while execute the command inserted
+        '''
+        if args:
+            fnd = args[args.find('("') + 2:args.find('")')]
+            command = args[0:args.find('(')]
+            arg = command.split(".")
+            if arg[1] == 'all':
+                HBNBCommand.do_all(HBNBCommand, 'City')
+            if arg[1] == 'count':
+                HBNBCommand.count(HBNBCommand, 'City')
+            if arg[1] == 'show':
+                HBNBCommand.do_show(HBNBCommand, 'City {}'.format(fnd))
+            if arg[1] == 'destroy':
+                HBNBCommand.do_destroy(HBNBCommand, 'City {}'.format(fnd))
+            if arg[1] == 'update':
+                ls_fd = fnd.split("\", \"")
+                if len(ls_fd) >= 3:
+                    st = 'City {} {} {}'.format(ls_fd[0], ls_fd[1], ls_fd[2])
+                    HBNBCommand.do_update(HBNBCommand, st)
+                else:
+                    fnd3 = fnd[0:fnd.find('"')]
+                    fnd4 = fnd[fnd.find('", ') + 3:len(args) - 1]
+                    dc = ast.literal_eval(fnd4)
+                    for key, val in dc.items():
+                        st = 'City {} {} {}'.format(fnd3, key, val)
+                        HBNBCommand.do_update(HBNBCommand, st)
+
+    @staticmethod
+    def do_Amenity(args):
+        '''
+        do_Amenity, use the class.command of the console as input
+        while execute the command inserted
+        '''
+        if args:
+            fnd = args[args.find('("') + 2:args.find('")')]
+            command = args[0:args.find('(')]
+            arg = command.split(".")
+            if arg[1] == 'all':
+                HBNBCommand.do_all(HBNBCommand, 'Amenity')
+            if arg[1] == 'count':
+                HBNBCommand.count(HBNBCommand, 'Amenity')
+            if arg[1] == 'show':
+                HBNBCommand.do_show(HBNBCommand, 'Amenity {}'.format(fnd))
+            if arg[1] == 'destroy':
+                HBNBCommand.do_destroy(HBNBCommand, 'Amenity {}'.format(fnd))
+            if arg[1] == 'update':
+                ls_fd = fnd.split("\", \"")
+                if len(ls_fd) >= 3:
+                    st = 'Amenity {} {} {}'.format(ls_fd[0],
+                                                   ls_fd[1], ls_fd[2])
+                    HBNBCommand.do_update(HBNBCommand, st)
+                else:
+                    fnd3 = fnd[0:fnd.find('"')]
+                    fnd4 = fnd[fnd.find('", ') + 3:len(args) - 1]
+                    dc = ast.literal_eval(fnd4)
+                    for key, val in dc.items():
+                        st = 'Amenity {} {} {}'.format(fnd3, key, val)
+                        HBNBCommand.do_update(HBNBCommand, st)
+
+    @staticmethod
+    def do_Place(args):
+        '''
+        do_Place, use the class.command of the console as input
+        while execute the command inserted
+        '''
+        if args:
+            fnd = args[args.find('("') + 2:args.find('")')]
+            command = args[0:args.find('(')]
+            arg = command.split(".")
+            if arg[1] == 'all':
+                HBNBCommand.do_all(HBNBCommand, 'Place')
+            if arg[1] == 'count':
+                HBNBCommand.count(HBNBCommand, 'Place')
+            if arg[1] == 'show':
+                HBNBCommand.do_show(HBNBCommand, 'Place {}'.format(fnd))
+            if arg[1] == 'destroy':
+                HBNBCommand.do_destroy(HBNBCommand, 'Place {}'.format(fnd))
+            if arg[1] == 'update':
+                ls_fd = fnd.split("\", \"")
+                if len(ls_fd) >= 3:
+                    st = 'Place {} {} {}'.format(ls_fd[0], ls_fd[1], ls_fd[2])
+                    HBNBCommand.do_update(HBNBCommand, st)
+                else:
+                    fnd3 = fnd[0:fnd.find('"')]
+                    fnd4 = fnd[fnd.find('", ') + 3:len(args) - 1]
+                    dc = ast.literal_eval(fnd4)
+                    for key, val in dc.items():
+                        st = 'Place {} {} {}'.format(fnd3, key, val)
+                        HBNBCommand.do_update(HBNBCommand, st)
+
+    @staticmethod
+    def do_Review(args):
+        '''
+        do_Review, use the class.command of the console as input
+        while execute the command inserted
+        '''
+        if args:
+            fnd = args[args.find('("') + 2:args.find('")')]
+            command = args[0:args.find('(')]
+            arg = command.split(".")
+            if arg[1] == 'all':
+                HBNBCommand.do_all(HBNBCommand, 'Review')
+            if arg[1] == 'count':
+                HBNBCommand.count(HBNBCommand, 'Review')
+            if arg[1] == 'show':
+                HBNBCommand.do_show(HBNBCommand, 'Review {}'.format(fnd))
+            if arg[1] == 'destroy':
+                HBNBCommand.do_destroy(HBNBCommand, 'Review {}'.format(fnd))
+            if arg[1] == 'update':
+                ls_fd = fnd.split("\", \"")
+                if len(ls_fd) >= 3:
+                    st = 'Review {} {} {}'.format(ls_fd[0], ls_fd[1], ls_fd[2])
+                    HBNBCommand.do_update(HBNBCommand, st)
+                else:
+                    fnd3 = fnd[0:fnd.find('"')]
+                    fnd4 = fnd[fnd.find('", ') + 3:len(args) - 1]
+                    dc = ast.literal_eval(fnd4)
+                    for key, val in dc.items():
+                        st = 'Review {} {} {}'.format(fnd3, key, val)
+                        HBNBCommand.do_update(HBNBCommand, st)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    HBNBCommand.prompt = '(hbnb) '
     HBNBCommand().cmdloop()
